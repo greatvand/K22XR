@@ -1,0 +1,30 @@
+Scenario
+You are part of a DevOps team tasked with evolving a simple assembly pipeline into a more robust, production‑style process. Your reference pipeline built a basic smartphone by creating a file, appending parts, and archiving the result. Now, you must create a pipeline for a different gadget that introduces versioning, multiple stages, basic quality checks, packaging, and failure handling—all using only shell commands, workspace cleanup, artifact archiving, and simple pipeline constructs.
+
+Objectives
+
+Introduce build metadata through environment variables
+
+Structure the pipeline into distinct stages
+
+Enforce the presence of a critical component, failing fast if it’s missing
+
+Package the assembled files into a versioned archive
+
+Add post‑build actions for success, failure, and always‑run notifications
+
+Tasks
+
+Define a build‑time variable named VERSION that incorporates the build number. Print a message indicating which version of the gadget is being built.
+
+Create four sequential stages:
+
+Prepare: clear the workspace and create the build directory
+
+Assemble: write a file listing five chosen components of a new gadget type (not smartphone parts), displaying the file contents after each addition; include logic to stop the build immediately if a specific required component (e.g., “Sensor”) is not present
+
+Package: bundle the build directory into a zip file named to include the VERSION variable and print a confirmation message
+
+Verify: inspect the contents of the zip to ensure the main file is included, failing the stage if it’s missing
+
+Implement post‑build actions that on success archive both the build directory and the zip artifact; on failure print a failure message with the build number and result; and always print the finish time.
