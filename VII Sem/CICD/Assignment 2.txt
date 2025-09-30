@@ -1,0 +1,21 @@
+- Create a workflow that runs on push, sets up three jobs across Ubuntu, macOS, and Windows, prints system information on each, and ensures the Windows job always runs even if the Ubuntu job fails. Add steps to capture commit SHA, repository name, and workspace path into a file, then upload it as an artifact.  
+
+- Extend the workflow to include conditional steps: one that only runs on the `main` branch, one that runs only if the previous step fails, and one that always runs regardless of outcome.  
+
+- Add a matrix job that runs the same set of commands across multiple Node.js versions and operating systems, printing the version and OS details in each run.  
+
+- Create a workflow that checks out the repository using both manual Git commands and the `actions/checkout` action, compares the file listings before and after, and writes the differences into a log file stored as an artifact.  
+
+- Add a job that uses a marketplace action requiring inputs, captures its outputs, and passes those outputs into a subsequent step that appends them to a summary file.  
+
+- Configure a workflow that triggers on push, pull request, and issue events, with separate jobs for each event type. Each job should echo event‑specific context variables, check out the code, and write the details into event‑named files.  
+
+- Create a workflow that generates a text file in one job, uploads it as an artifact, and in a dependent job downloads the artifact, reads its contents, and appends additional information before re‑uploading it.  
+
+- Add a workflow that is triggered by the successful completion of another workflow, checks out the repository, and runs a verification script. Ensure it only runs if the triggering workflow concluded with success.  
+
+- Configure a scheduled workflow that runs daily at a fixed time, checks out the repository, lists files, and appends a timestamped entry into a log file that is uploaded as an artifact.  
+
+- Add caching to a workflow by using the cache action to store and restore dependencies, run an installation command, and verify from logs that the cache was restored on subsequent runs.  
+
+- Create a reusable workflow that prints environment details, accepts an input parameter, and echoes it. Call this reusable workflow from another workflow, passing different inputs, and collect the outputs into a consolidated log file.  
