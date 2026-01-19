@@ -1,0 +1,164 @@
+
+
+install ubuntu
+java -version
+
+sudo apt update
+sudo apt install default-jre
+
+java -version
+
+sudo apt install -y postgresql postgresql-contrib
+sudo systemctl enable postgresql
+sudo systemctl start PostgreSQL
+
+sudo -u postgres psql
+
+postgres=# CREATE ROLE sonar WITH LOGIN ENCRYPTED PASSWORD 'Welcome@123';
+CREATE ROLE
+postgres=# CREATE DATABASE sonarqube OWNER sonar;
+CREATE DATABASE
+postgres=# GRANT ALL PRIVILEGES ON DATABASE sonarqube TO sonar;
+GRANT
+postgres=# \q
+
+sudo -u postgres psql -c "\du" -describe users
+sudo -u postgres psql -c "\l"  -list db
+PGPASSWORD='StrongPasswordHere' psql -U sonar -h localhost -d sonarqube -c "\dt"
+
+
+psql
+
+PostgreSQL client
+
+-U sonar
+
+Login as user sonar
+
+-h localhost
+
+Connect to PostgreSQL on local machine
+
+-d sonarqube
+
+Connect to database sonarqube
+
+-c "\dt"
+
+Runs a psql command and exits
+
+\dt means
+
+d = describe
+
+t = tables
+
+# SonarQube uses Elasticsearch internally and needs some kernel tweaks.
+
+# Increase the maximum number of memory map areas (required by Elasticsearch)
+echo 'vm.max_map_count=524288' | sudo tee -a /etc/sysctl.d/99-sonarqube.conf
+
+# Increase the maximum number of file handles
+echo 'fs.file-max=131072' | sudo tee -a /etc/sysctl.d/99-sonarqube.conf
+
+# Apply the new sysctl settings
+sudo sysctl --system
+
+# Set ulimits for the sonar user by adding to /etc/security/limits.d/99-sonarqube.conf:
+
+# Allow many open files for the sonar user
+echo 'sonar - nofile 131072' | sudo tee /etc/security/limits.d/99-sonarqube.conf
+
+# Allow many processes for the sonar user
+echo 'sonar - nproc 8192' | sudo tee -a /etc/security/limits.d/99-sonarqube.conf
+
+These kernel and ulimit tweaks give Elasticsearch (used by SonarQube) enough memory mappings and file descriptors to index code reliably. Apply them before starting SonarQube to avoid startup, indexing, or resource-limit failures
+
+sudo useradd -m -d /opt/sonarqube -s /bin/bash sonar
+
+
+| Part                | Meaning                                           |
+| ------------------- | ------------------------------------------------- |
+| `sudo`              | Run the command with root (admin) privileges      |
+| `useradd`           | Command to create a new user                      |
+| `-m`                | Create the user’s home directory                  |
+| `-d /opt/sonarqube` | Set `/opt/sonarqube` as the user’s home directory |
+| `-s /bin/bash`      | Set Bash as the login shell                       |
+| `sonar`             | Username being created                            |
+
+
+
+
+# switch to a temporary folder for downloads (keeps /tmp clean and avoids permission issues)
+cd /tmp
+
+# download the SonarQube community zip, follow redirects (-L) and write output to sonarqube.zip (-o)
+curl -L -o sonarqube.zip "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.11.0.114957.zip"
+
+# install unzip non-interactively (-y auto-accepts prompts)
+sudo apt-get update
+sudo apt-get install -y unzip
+
+# extract the downloaded archive into /tmp (unzip sonarqube.zip)
+unzip sonarqube.zip
+
+# move the extracted folder to a stable location for SonarQube deployment
+sudo mv sonarqube-25.11.0.114957 /opt/sonarqube-current
+
+# change ownership recursively (-R) so the sonar system user owns all files and directories
+sudo chown -R sonar:sonar /opt/sonarqube-current
+
+ls -l /opt/sonarqube-current/
+
+# edit the main SonarQube configuration file as the 'sonar' user
+# (use your preferred editor: vim/nano)
+sudo -u sonar vim /opt/sonarqube-current/conf/sonar.properties
+
+Uncomment and set these lines (replace the password/host if needed):
+
+# DB username for SonarQube (the DB user you created)
+sonar.jdbc.username=sonar
+
+# DB password for that user; keep this secret and match your DB setup
+sonar.jdbc.password=StrongPasswordHere
+
+# JDBC URL: jdbc:postgresql://<host>:<port>/<database>
+# default PostgreSQL port is 5432 — using localhost because DB is on same VM
+sonar.jdbc.url=jdbc:postgresql://localhost:5432/sonarqube
+
+Create the unit file (edit as root):
+
+sudo vim /etc/systemd/system/sonarqube.service
+
+Paste this exact unit file (no inline comments inside the file):
+
+[Unit]
+Description=SonarQube service
+After=network.target postgresql.service
+
+[Service]
+Type=forking
+User=sonar
+Group=sonar
+ExecStart=/opt/sonarqube-current/bin/linux-x86-64/sonar.sh start
+ExecStop=/opt/sonarqube-current/bin/linux-x86-64/sonar.sh stop
+Restart=on-failure
+LimitNOFILE=131072
+LimitNPROC=8192
+
+[Install]
+WantedBy=multi-user.target
+
+
+# reload systemd to pick up the new unit
+sudo systemctl daemon-reload
+
+# enable SonarQube to start on boot
+sudo systemctl enable sonarqube
+
+# start SonarQube now
+sudo systemctl start sonarqube
+
+# check current status; it should become active (running)
+sudo systemctl status sonarqube
+
