@@ -1,5 +1,4 @@
 
-
 install ubuntu
 java -version
 
@@ -162,3 +161,22 @@ sudo systemctl start sonarqube
 # check current status; it should become active (running)
 sudo systemctl status sonarqube
 
+
+install Jenkins
+install maven
+install Docker Desktop
+Enable wsl integration
+utkarsh@Utkarsh-PC:~$ sudo usermod -aG docker jenkins
+utkarsh@Utkarsh-PC:~$ sudo usermod -aG docker ubuntu
+usermod: user 'ubuntu' does not exist
+utkarsh@Utkarsh-PC:~$ sudo usermod -aG docker utkarsh
+utkarsh@Utkarsh-PC:~$logout
+
+Create SonarQube project
+Create new user
+Generate token
+Add to admin group
+Create quality gate
+Create Jenkins job
+secret text binding
+variable - SONAR_TOKEN
